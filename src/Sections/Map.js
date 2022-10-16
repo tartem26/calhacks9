@@ -1,5 +1,4 @@
 import * as React from 'react';
-// import Data from '../data/diseases.json';
 import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
 import AppBar from '@mui/material/AppBar';
@@ -19,7 +18,6 @@ import { useState, useEffect } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
 import { csv } from "d3-fetch";
-import styled from 'styled-components';
 
 /* Map */
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
@@ -41,8 +39,8 @@ const colorScale = scaleQuantize()
 /* Score (Current Situation) Calculation */
 function scoreCurrent() {
   const diseasesLevel = require('../data/diseases.json');
-  let actualDiseasesLevel = 0;
-  let score = 0 ;
+  let actualDiseasesLevel = 0
+  let score = 0 
 
   for (let i = 0; i < 3219; i++) {
     actualDiseasesLevel += diseasesLevel[i].diseases_level;
@@ -53,13 +51,50 @@ function scoreCurrent() {
   return Math.round(score);
 }
 
+/* Uncertainty */
+function uncertainty() {
+  let mean = actualDiseasesLevel / 3219;
+  let statisticsUncertainty = 0;
+  let sum = 0;
 
+  for (let i = 0; i < 3219; i++) {
+    sum += (data[i].diseases_level - mean)(data[i].diseases_level - mean);
+  }
+
+  statisticsUncertainty = Math.sqrt(sum / (3219 - 1));
+
+  return statisticsUncertainty;
+}
+
+/* Prediction */
+function prediction() {
+  for (let i = 0; i < 3219; i++) {
+    var fs = require('fs');
+    const data = require('../data/diseases.json');
+    
+    const predict = data[i].diseases_level => {
+      const weight = 2.5;
+      const prediction = data[i].diseases_level * weight;
+      return prediction;
+    };
+  
+    const infectedPeople = [data[i].diseases_level - uncertainty(), data[i].diseases_level, data[i].diseases_level + uncertainty()];
+    const data = infectedPeople[0];
+  
+    const prediction = predict(data[i].diseases_level);
+    
+    fs.writeFile ("diseasesPrediction.json", JSON.stringify(prediction), function(err) {
+      if (err) throw err;
+      console.log('complete');
+    }
+  }
+}
 
 /* Score (Prediction) Calculation */
 function scorePrediction() {
   const diseasesLevelPrediction = require('../data/diseasesPrediction.json');
-  let actualDiseasesLevelPrediction = 0;
-  let scorePrediction = 0 ;
+  let actualDiseasesLevelPrediction = 0
+  let scorePrediction = 0
 
   for (let i = 0; i < 3219; i++) {
     actualDiseasesLevelPrediction += diseasesLevelPrediction[i].diseases_levelPrediction;
@@ -70,40 +105,10 @@ function scorePrediction() {
   return Math.round(scorePrediction);
 }
 
-/* Prediction */
-// const predict = data => {
-//   const weights = [2.5, 0.01]
-//   var prediction = 0
-
-//   for (const [index, weight] of weights.entries()) {
-//     const dataPoint = data[index]
-//     prediction += dataPoint * weight
-//   }
-
-//   return prediction
-// }
-
-// const infectedPeople = [2, 5, 12, 30]
-// const infectedCountries = [1, 1, 4, 5]
-// const data = [infectedPeople[0], infectedCountries[0]]
-// const prediction = predict(data)
-
 /* Upper Menu */
 const drawerWidth = 240;
 // const navItems = ['Map', 'About', 'Contact'];
 const navItems = ['Map'];
-
-/* Buttons */
-const ButtonToggle = styled(Button)`
-  opacity: 0.6;
-  ${({ active }) =>
-    active &&
-    `
-    opacity: 1;
-  `}
-`;
-
-const types = ['Current situation', 'Prediction'];
 
 /* Main Function */
 function Map(props) {
@@ -141,8 +146,6 @@ function Map(props) {
       setData(counties);
     });
   }, []);
-
-  const [active, setActive] = useState(types[0]);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -213,30 +216,21 @@ function Map(props) {
           </Grid>
           <Grid item xs={5.5}>
             <Toolbar />
-            {types.map(type => (
-              <ButtonToggle
-                style={{ fontSize: 17, margin: 40 }}
-                key={type}
-                active={active === type}
-                onClick={() => setActive(type)}
-              >
-                {type}
-              </ButtonToggle>
-            ))}
-            <Typography
-              variant="h5"
-              component="div"
-              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'center' }}
-            >
-              Score
-            </Typography>
-            <Typography
-              variant="h5"
-              component="div"
-              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'center' }}
-            >
-              {scoreCurrent()}%
-            </Typography>
+            <Toolbar />
+            <Grid container spacing={1} columns={5.5}>
+              <Grid item xs={2.75}>
+                <Typography fontSize={26} component="div">Current situation</Typography>
+                <Toolbar />
+                <Typography fontSize={26} component="div">{scoreCurrent()}%</Typography>
+                <Button variant="contained" onClick={scoreCurrent()}>Update the Score</Button>
+              </Grid>
+              <Grid item xs={2.75}>
+                <Typography fontSize={26} component="div">Prediction</Typography>
+                <Toolbar />
+                {/* <Typography fontSize={26} component="div">{scorePrediction()}%</Typography> */}
+                <Button variant="contained" onClick={prediction}>Update the Score {prediction}</Button>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
       </Box>
