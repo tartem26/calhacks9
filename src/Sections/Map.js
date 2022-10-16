@@ -73,19 +73,22 @@ function array(){
 function prediction() {
   let arrayNew = array(); 
   const diseasesLevel = require('../data/diseases.json');
+  const diseasesLevelNew = require('../data/diseasesPrediction.json');
 
-  const predict = data => {
-    const weight = 2.5;
-    const prediction = data * weight;
-    return prediction;
-  };
-  
-  const infectedPeople = [diseasesLevel[0].diseases_level - getStandardDeviation(arrayNew), diseasesLevel[0].diseases_level, diseasesLevel[0].diseases_level + getStandardDeviation(arrayNew)];
-  const data = infectedPeople[0];
-  
-  const prediction = predict(data);
+  for(let i = 0; i < 3219; i++){
+    const predict = data => {
+      const weight = 2.5;
+      const prediction = data * weight;
+      return prediction;
+    };
+    
+    const infectedPeople = [diseasesLevel[i].diseases_level - getStandardDeviation(arrayNew), diseasesLevel[i].diseases_level, diseasesLevel[0].diseases_level + getStandardDeviation(arrayNew)];
+    const data = infectedPeople[0];
+    
+    const prediction = predict(data);
 
-  return prediction
+    diseasesLevelNew[i].diseases_level = prediction
+  }
 }
 
 /* Score (Prediction) Calculation */
@@ -95,7 +98,7 @@ function scorePrediction() {
   let scorePrediction = 0
 
   for (let i = 0; i < 3219; i++) {
-    actualDiseasesLevelPrediction += diseasesLevelPrediction[i].diseases_levelPrediction;
+    actualDiseasesLevelPrediction += diseasesLevelPrediction[i].diseases_level;
   }
 
   scorePrediction = actualDiseasesLevelPrediction / (20.6 * 3220) * 100;
@@ -105,7 +108,6 @@ function scorePrediction() {
 
 /* Upper Menu */
 const drawerWidth = 240;
-// const navItems = ['Map', 'About', 'Contact'];
 const navItems = ['Map'];
 
 /* Main Function */
@@ -225,9 +227,8 @@ function Map(props) {
               <Grid item xs={2.75}>
                 <Typography fontSize={26} component="div">Prediction</Typography>
                 <Toolbar />
-                {/* <Typography fontSize={26} component="div">{scorePrediction()}%</Typography> */}
-                <Button variant="contained" onClick={prediction}>Update the Score {prediction()}</Button>
-                {prediction()}
+                <Typography fontSize={26} component="div">{scorePrediction()}%</Typography>
+                <Button variant="contained" onClick={prediction()}>Update the Score</Button>
               </Grid>
             </Grid>
           </Grid>
