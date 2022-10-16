@@ -51,43 +51,41 @@ function scoreCurrent() {
   return Math.round(score);
 }
 
-/* Uncertainty */
-function uncertainty() {
-  let mean = actualDiseasesLevel / 3219;
-  let statisticsUncertainty = 0;
-  let sum = 0;
+function getStandardDeviation(array) {
+  const n = array.length
+  const mean = array.reduce((a, b) => a + b) / n
+  return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n)
+}
 
-  for (let i = 0; i < 3219; i++) {
-    sum += (data[i].diseases_level - mean)(data[i].diseases_level - mean);
+/* Array */
+function array(){
+  var data = require('../data/diseases.json');
+  let result = []
+
+  for(let i = 0; i < 3219; i++){
+    result[i] = data[i].diseases_level
   }
-
-  statisticsUncertainty = Math.sqrt(sum / (3219 - 1));
-
-  return statisticsUncertainty;
+  
+  return result
 }
 
 /* Prediction */
 function prediction() {
-  for (let i = 0; i < 3219; i++) {
-    var fs = require('fs');
-    const data = require('../data/diseases.json');
-    
-    const predict = data[i].diseases_level => {
-      const weight = 2.5;
-      const prediction = data[i].diseases_level * weight;
-      return prediction;
-    };
+  let arrayNew = array(); 
+  const diseasesLevel = require('../data/diseases.json');
+
+  const predict = data => {
+    const weight = 2.5;
+    const prediction = data * weight;
+    return prediction;
+  };
   
-    const infectedPeople = [data[i].diseases_level - uncertainty(), data[i].diseases_level, data[i].diseases_level + uncertainty()];
-    const data = infectedPeople[0];
+  const infectedPeople = [diseasesLevel[0].diseases_level - getStandardDeviation(arrayNew), diseasesLevel[0].diseases_level, diseasesLevel[0].diseases_level + getStandardDeviation(arrayNew)];
+  const data = infectedPeople[0];
   
-    const prediction = predict(data[i].diseases_level);
-    
-    fs.writeFile ("diseasesPrediction.json", JSON.stringify(prediction), function(err) {
-      if (err) throw err;
-      console.log('complete');
-    }
-  }
+  const prediction = predict(data);
+
+  return prediction
 }
 
 /* Score (Prediction) Calculation */
@@ -228,7 +226,8 @@ function Map(props) {
                 <Typography fontSize={26} component="div">Prediction</Typography>
                 <Toolbar />
                 {/* <Typography fontSize={26} component="div">{scorePrediction()}%</Typography> */}
-                <Button variant="contained" onClick={prediction}>Update the Score {prediction}</Button>
+                <Button variant="contained" onClick={prediction}>Update the Score {prediction()}</Button>
+                {prediction()}
               </Grid>
             </Grid>
           </Grid>
