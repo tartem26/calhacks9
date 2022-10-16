@@ -1,4 +1,5 @@
 import * as React from 'react';
+// import Data from '../data/diseases.json';
 import Grid from '@mui/material/Grid';
 import PropTypes from 'prop-types';
 import AppBar from '@mui/material/AppBar';
@@ -37,23 +38,55 @@ const colorScale = scaleQuantize()
   "#1d6357"
 ]);
 
-/* Prediction */
-const predict = data => {
-  const weights = [2.5, 0.01]
-  var prediction = 0
+/* Score (Current Situation) Calculation */
+function scoreCurrent() {
+  const diseasesLevel = require('../data/diseases.json');
+  let actualDiseasesLevel = 0;
+  let score = 0 ;
 
-  for (const [index, weight] of weights.entries()) {
-    const dataPoint = data[index]
-    prediction += dataPoint * weight
+  for (let i = 0; i < 3219; i++) {
+    actualDiseasesLevel += diseasesLevel[i].diseases_level;
   }
 
-  return prediction
+  score = actualDiseasesLevel / (20.6 * 3220) * 100;
+
+  return Math.round(score);
 }
 
-const infectedPeople = [2, 5, 12, 30]
-const infectedCountries = [1, 1, 4, 5]
-const data = [infectedPeople[0], infectedCountries[0]]
-const prediction = predict(data)
+
+
+/* Score (Prediction) Calculation */
+function scorePrediction() {
+  const diseasesLevelPrediction = require('../data/diseasesPrediction.json');
+  let actualDiseasesLevelPrediction = 0;
+  let scorePrediction = 0 ;
+
+  for (let i = 0; i < 3219; i++) {
+    actualDiseasesLevelPrediction += diseasesLevelPrediction[i].diseases_levelPrediction;
+  }
+
+  scorePrediction = actualDiseasesLevelPrediction / (20.6 * 3220) * 100;
+  
+  return Math.round(scorePrediction);
+}
+
+/* Prediction */
+// const predict = data => {
+//   const weights = [2.5, 0.01]
+//   var prediction = 0
+
+//   for (const [index, weight] of weights.entries()) {
+//     const dataPoint = data[index]
+//     prediction += dataPoint * weight
+//   }
+
+//   return prediction
+// }
+
+// const infectedPeople = [2, 5, 12, 30]
+// const infectedCountries = [1, 1, 4, 5]
+// const data = [infectedPeople[0], infectedCountries[0]]
+// const prediction = predict(data)
 
 /* Upper Menu */
 const drawerWidth = 240;
@@ -104,7 +137,7 @@ function Map(props) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    csv("/diseases.csv").then(counties => {
+    csv("./diseases.csv").then(counties => {
       setData(counties);
     });
   }, []);
@@ -191,11 +224,18 @@ function Map(props) {
               </ButtonToggle>
             ))}
             <Typography
-              variant="h6"
+              variant="h5"
               component="div"
               sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'center' }}
             >
               Score
+            </Typography>
+            <Typography
+              variant="h5"
+              component="div"
+              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'center' }}
+            >
+              {scoreCurrent()}%
             </Typography>
           </Grid>
         </Grid>
