@@ -18,27 +18,61 @@ import { useState, useEffect } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { scaleQuantize } from "d3-scale";
 import { csv } from "d3-fetch";
+import styled from 'styled-components';
 
+/* Map */
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json";
 
 const colorScale = scaleQuantize()
-  .domain([1, 10])
-  .range([
-    "#ebf9f7",
-    "#d7f4ef",
-    "#b0e8df",
-    "#88ddcf",
-    "#61d1be",
-    "#4dcbb6",
-    "#34b29d",
-    "#288a7a",
-    "#1d6357"
-  ]);
+.domain([1, 10])
+.range([
+  "#ebf9f7",
+  "#d7f4ef",
+  "#b0e8df",
+  "#88ddcf",
+  "#61d1be",
+  "#4dcbb6",
+  "#34b29d",
+  "#288a7a",
+  "#1d6357"
+]);
 
+/* Prediction */
+const predict = data => {
+  const weights = [2.5, 0.01]
+  var prediction = 0
+
+  for (const [index, weight] of weights.entries()) {
+    const dataPoint = data[index]
+    prediction += dataPoint * weight
+  }
+
+  return prediction
+}
+
+const infectedPeople = [2, 5, 12, 30]
+const infectedCountries = [1, 1, 4, 5]
+const data = [infectedPeople[0], infectedCountries[0]]
+const prediction = predict(data)
+
+/* Upper Menu */
 const drawerWidth = 240;
 // const navItems = ['Map', 'About', 'Contact'];
 const navItems = ['Map'];
 
+/* Buttons */
+const ButtonToggle = styled(Button)`
+  opacity: 0.6;
+  ${({ active }) =>
+    active &&
+    `
+    opacity: 1;
+  `}
+`;
+
+const types = ['Current situation', 'Prediction'];
+
+/* Main Function */
 function Map(props) {
   const { window } = props;
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -74,6 +108,8 @@ function Map(props) {
       setData(counties);
     });
   }, []);
+
+  const [active, setActive] = useState(types[0]);
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -111,7 +147,7 @@ function Map(props) {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -134,7 +170,7 @@ function Map(props) {
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={colorScale(cur ? cur.unemployment_rate : "#EEE")}
+                        fill={colorScale(cur ? cur.diseases_level : "#EEE")}
                       />
                     );
                   })
@@ -144,14 +180,23 @@ function Map(props) {
           </Grid>
           <Grid item xs={5.5}>
             <Toolbar />
-            <Grid container spacing={1} columns={5.5}>
-              <Grid item xs={2.75}>
-                <Button variant="contained">Current situation</Button>
-              </Grid>
-              <Grid item xs={2.75}>
-                <Button variant="outlined">Prediction</Button>
-              </Grid>
-            </Grid>
+            {types.map(type => (
+              <ButtonToggle
+                style={{ fontSize: 17, margin: 40 }}
+                key={type}
+                active={active === type}
+                onClick={() => setActive(type)}
+              >
+                {type}
+              </ButtonToggle>
+            ))}
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'center' }}
+            >
+              Score
+            </Typography>
           </Grid>
         </Grid>
       </Box>
