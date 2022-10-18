@@ -88,6 +88,9 @@ function prediction() {
     const prediction = predict(data);
 
     diseasesLevelNew[i].diseases_level = prediction
+
+    // var JsonObject= JSON.parse(diseasesLevelNew)
+    // JsonObject[i].diseases_level = JSON.stringify(prediction);
   }
 }
 
