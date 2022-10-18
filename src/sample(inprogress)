@@ -1,0 +1,34 @@
+
+import { request } from 'https';
+import fetch from 'node-fetch';
+import axios from "axios";//library, endpoint
+import * as React from "react";
+
+const uurl = "/*put url here*/"; //ex:https://data.sandiegocounty.gov/resource/5sib-ba59.json
+
+var data = require(uurl);
+//or var data = axios.get(uurl);
+let result = [];
+
+fetch(uurl,
+    {
+        method: 'GET',
+        header: {
+            'Content-Type': 'application/json'
+             'accept': 'application / fhir + json', //the header
+            'x - api - key': '/*enter key here*/'
+        },
+        body: JSON.stringify({ name: 'username' })
+    })
+
+        for(var i = 0; i<data.length; i++) {
+    {
+        result[i] = data[i].geography;//or other parameter, such as city, state
+
+                //limitations and gathering information
+                println(result[i]);
+    }
+
+
+
+}
